@@ -34,3 +34,14 @@
       state: started
     when: vault_manage_service
 
+- name: Vault API setup
+  tags:
+  - api
+  block:
+  - set_fact:
+      vault_url: "{% if vault_config.api_addr is defined %}{{ vault_config.api_addr }}{% else %}https://{{ vault_host }}:8200{% endif %}"
+
+  - import_tasks: api/init.yml
+    when: vault_auto_init
+
+  - import_tasks: api/policies.yml

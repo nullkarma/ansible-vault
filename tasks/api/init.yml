@@ -1,0 +1,82 @@
+---
+
+- name: Check if Vault is initialized
+  uri:
+    url: "{{ vault_url }}/v1/sys/seal-status"
+    method: GET
+    headers:
+      Content-Type: application/json
+  run_once: true
+  register: vault_status
+
+- set_fact:
+    vault_initialized: "{{ vault_status.json.initialized }}"
+
+- name: Initialize and unseal Vault
+  when: not vault_initialized
+  block:
+  - name: Initialize Vault
+    uri:
+      url: "{{ vault_url }}/v1/sys/init"
+      method: PUT
+      body_format: json
+      headers:
+        Content-Type: application/json
+      body: "{{ vault_init_parameters }}"
+    run_once: true
+    register: vault_init
+
+  - set_fact:
+      vault_unseal_keys: "{{ vault_init.json }}"
+
+  - name: Unseal Vault
+    uri:
+      url: "{{ vault_url }}/v1/sys/unseal"
+      method: PUT
+      headers:
+        Content-Type: application/json
+      body_format: json
+      body:
+        key: "{{ item }}"
+    run_once: true
+    loop: "{{ vault_unseal_keys.keys_base64 }}"
+    register: vault_unseal
+    when: vault_unseal is not defined or vault_unseal.json.progress != 0
+    no_log: true
+
+  - set_fact:
+      root_token: "{{ vault_unseal_keys.root_token }}"
+
+  - name: Create root secret (kv engine)
+    uri:
+      url: "{{ vault_url }}/v1/sys/mounts/root"
+      method: POST
+      status_code: 204
+      headers:
+        X-Vault-Token: "{{ root_token }}"
+        Content-Type: application/json
+      body_format: json
+      body:
+        description: "Ansible generated vault unseal keys - !!! save keys and delete afterwards !!!"
+        type: kv
+        options:
+          version: 1
+        config:
+          listing_visibility: hidden
+    run_once: true
+
+  - name: Write unseal keys to root secret
+    uri:
+      url: "{{ vault_url }}/v1/root/unseal"
+      method: PUT
+      status_code: 204
+      headers:
+        X-Vault-Token: "{{ root_token }}"
+        Content-Type: application/json
+      body_format: json
+      body: "{{ vault_unseal_keys }}"
+    run_once: true
+
+  - debug:
+      msg: "{{ vault_unseal_keys }}"
+

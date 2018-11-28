@@ -22,7 +22,6 @@
     - "{{ vault_conf_dir }}"
     - "{{ vault_data_dir }}"
     - "{{ vault_bin_dir }}"
-    - "{{ vault_acl_dir }}"
 
 - set_fact:
     vault_work_dir: "{{ vault_home_dir }}/versions/{{ vault_version }}"

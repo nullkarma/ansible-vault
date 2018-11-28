@@ -7,11 +7,14 @@ vault_user: vault
 vault_group: vault
 
 vault_home_dir: /opt/vault
-vault_config_dir: /etc/vault
+vault_conf_dir: /etc/vault
 vault_data_dir: /opt/vault/data
 
-vault_manage_service: false
+vault_manage_service: true
 vault_restart_on_change: true
+
+vault_auto_init: true
+vault_host: "{{ ansible_fqdn }}"
 
 # Config
 
@@ -27,3 +30,7 @@ vault_config:
   storage:
     file:
       path: "{{ vault_data_dir }}"
+
+vault_init_parameters:
+  secret_shares: 5
+  secret_threshold: 3
