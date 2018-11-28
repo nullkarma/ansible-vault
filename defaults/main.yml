@@ -1,0 +1,29 @@
+---
+
+vault_version: 0.11.5
+vault_base_url: "https://releases.hashicorp.com/vault/{{ vault_version }}"
+
+vault_user: vault
+vault_group: vault
+
+vault_home_dir: /opt/vault
+vault_config_dir: /etc/vault
+vault_data_dir: /opt/vault/data
+
+vault_manage_service: false
+vault_restart_on_change: true
+
+# Config
+
+vault_config:
+  default_lease_ttl: 168h
+  max_lease_ttl: 720h
+  disable_mlock: false
+  ui: true
+  listener:
+    tcp:
+      address: 0.0.0.0:8200
+      tls_disable: true
+  storage:
+    file:
+      path: "{{ vault_data_dir }}"

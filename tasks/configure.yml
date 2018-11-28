@@ -1,0 +1,12 @@
+---
+
+- name: Configure vault
+  template:
+    src: config.json.j2
+    dest: "{{ vault_conf_dir }}/config.json"
+    mode: 0640
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+  notify:
+  - systemctl restart vault
+

@@ -1,0 +1,20 @@
+---
+
+- name: systemctl daemon-reload
+  systemd:
+    daemon_reload: True
+
+- name: systemctl start vault
+  systemd:
+    name: vault.service
+    state: started
+    enabled: yes
+  when: vault_manage_service
+
+- name: systemctl restart vault
+  systemd:
+    name: vault.service
+    state: restarted
+    enabled: yes
+  when: vault_manage_service and vault_restart_on_change
+

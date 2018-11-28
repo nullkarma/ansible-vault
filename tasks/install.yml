@@ -1,0 +1,73 @@
+---
+
+- name: Create user
+  user:
+    name: "{{ vault_user }}"
+    home: "{{ vault_home_dir }}"
+    create_home: yes
+    system: yes
+
+- set_fact:
+    vault_bin_dir: "{{ vault_home_dir }}/bin"
+  tags: always
+
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    state: directory
+  with_items:
+    - "{{ vault_home_dir }}"
+    - "{{ vault_conf_dir }}"
+    - "{{ vault_data_dir }}"
+    - "{{ vault_bin_dir }}"
+    - "{{ vault_acl_dir }}"
+
+- set_fact:
+    vault_work_dir: "{{ vault_home_dir }}/versions/{{ vault_version }}"
+  tags: always
+
+- name: Check if version is already installed
+  stat:
+    path: "{{ vault_work_dir }}/vault"
+  register: vault
+
+- name: create version dir
+  file:
+    path: "{{ vault_work_dir }}"
+    state: directory
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+  when: not vault.stat.exists
+
+- name: Download vault
+  get_url:
+    url: "{{ vault_base_url }}/vault_{{ vault_version }}_linux_amd64.zip"
+    dest: "/tmp/vault.{{ vault_version }}.zip"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    remote_src: yes
+  when: not vault.stat.exists
+
+- name: Unarchive vault
+  unarchive:
+    src: "/tmp/vault.{{ vault_version }}.zip"
+    dest: "{{ vault_work_dir }}"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    remote_src: yes
+  when: not vault.stat.exists
+
+- name: Create link to current version
+  file:
+    src: "{{ vault_work_dir }}/vault"
+    path: "{{ vault_bin_dir }}/vault"
+    state: link
+
+- name: Create link to current version in bin dir
+  file:
+    src: "{{ vault_bin_dir }}/vault"
+    path: /usr/local/bin/vault
+    state: link
+

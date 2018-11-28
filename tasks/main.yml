@@ -1,0 +1,36 @@
+---
+
+- name: Install
+  tags:
+  - install
+  block:
+  - name: install required packages
+    package:
+      name: "{{ item }}"
+      state: present
+    loop:
+    - unzip
+
+  - name: Install vault
+    import_tasks: install.yml
+
+- name: Configure
+  tags:
+  - config
+  block:
+  - name: Configure vault
+    import_tasks: configure.yml
+
+  - name: Create systemd Unit File
+    template:
+      src: vault.systemd.j2
+      dest: /usr/lib/systemd/system/vault.service
+    notify:
+    - systemctl daemon-reload
+
+  - name: Start vault
+    systemd:
+      name: vault
+      state: started
+    when: vault_manage_service
+
