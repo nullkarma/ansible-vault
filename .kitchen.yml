@@ -21,8 +21,6 @@ provisioner:
 
 platforms:
   - name: centos-7.3
-    provision_command:
-    - yum -y install python-pip unzip bind-utils tree
 
 suites:
   - name: server
