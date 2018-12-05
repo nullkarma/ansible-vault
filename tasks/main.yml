@@ -45,3 +45,5 @@
     when: vault_auto_init
 
   - import_tasks: api/policies.yml
+    tags: policies
+
