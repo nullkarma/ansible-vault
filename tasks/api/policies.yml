@@ -1,38 +1,16 @@
 ---
 
-- name: Check if Vault is unsealed
+- name: Create Vault policies
   uri:
-    url: "{{ vault_url }}/v1/sys/seal-status"
-    method: GET
+    url: "{{ vault_url }}/v1/sys/policy/{{ item.name }}"
+    method: PUT
+    status_code: 204
     headers:
+      X-Vault-Token: "{{ vault_request_token }}"
       Content-Type: application/json
+    body_format: json
+    body:
+      policy: "{{ item.policies | to_json }}"
   run_once: true
-  register: vault_status
-
-- set_fact:
-    vault_sealed: "{{ vault_status.json.sealed }}"
-
-- debug:
-    msg: Vault is sealed
-  when: vault_sealed
-
-- name: Configure Policies
-  when: not vault_sealed
-  block:
-  - set_fact:
-      vault_request_token: "{% if root_token is defined %}{{ root_token }}{% else %}{{ vault_token }}{% endif %}"
-
-  - name: Create vault policies
-    uri:
-      url: "{{ vault_url }}/v1/sys/policy/{{ item.name }}"
-      method: PUT
-      status_code: 204
-      headers:
-        X-Vault-Token: "{{ vault_request_token }}"
-        Content-Type: application/json
-      body_format: json
-      body:
-        policy: "{{ item.policies | to_json }}"
-    run_once: true
-    loop: "{{ vault_policies }}"
+  loop: "{{ vault_policies }}"
 

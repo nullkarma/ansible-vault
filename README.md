@@ -31,6 +31,20 @@ vault_policies:
         - delete
 ```
 
+### Secret engine configuration
+
+Parameters can be looked up [in the Vault API documentation](https://www.vaultproject.io/api/system/mounts.html#enable-secrets-engine).
+
+```yaml
+vault_secrets:
+- path: pki/ca
+  parameters:
+    type: pki
+    description: Root CA
+    config:
+      max_lease_ttl: 87600h
+```
+
 # Role Variables
 
 |Parameter|Default|Description|
@@ -48,6 +62,7 @@ vault_policies:
 |vault_auto_init|`true`|Let Ansible initialize and unseal vault. Unseal keys will be writte into `root` kv secret|
 |vault_config|see `defaults/main.yml`|JSON config written in yaml. Consult Vault documentation for parameters|
 |vault_policies|see example for syntax|JSON Vault Policies|
+|vault_secrets|see example for syntax|JSON Vault Secret engines|
 |vault_init_parameters||`secret_shares: 5`<br>`secret_threshold: 3`||
 |vault_token|nil|If set, Ansible will use the token to create policies|
 

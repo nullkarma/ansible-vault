@@ -44,6 +44,32 @@
   - import_tasks: api/init.yml
     when: vault_auto_init
 
+  - name: Check if Vault is unsealed
+    uri:
+      url: "{{ vault_url }}/v1/sys/seal-status"
+      method: GET
+      headers:
+        Content-Type: application/json
+    run_once: true
+    register: vault_status
+
+  - set_fact:
+      vault_sealed: "{{ vault_status.json.sealed }}"
+
+  - debug:
+      msg: Vault is sealed
+    when: vault_sealed
+
+  - set_fact:
+      vault_request_token: "{% if root_token is defined %}{{ root_token }}{% else %}{{ vault_token }}{% endif %}"
+
+  - import_tasks: api/secrets.yml
+    tags: secrets
+    when: not vault_sealed and vault_secrets is defined
+
   - import_tasks: api/policies.yml
     tags: policies
+    when: not vault_sealed and vault_policies is defined
+
+
 
